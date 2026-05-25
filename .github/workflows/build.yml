@@ -1,7 +1,72 @@
-on: [push, pull_request, workflow_dispatch]
+name: Build ZMK Firmware
 
-name: Build
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:           # allow manual trigger from GitHub UI
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ── Left half (central — connects to host) ───────────────────
+          - board: xiao_ble
+            shield: my_keyboard_left
+            artifact_name: my_keyboard_left
+            zmk_extra_modules: ""
+
+          # ── Right half (peripheral) ──────────────────────────────────
+          - board: xiao_ble
+            shield: my_keyboard_right
+            artifact_name: my_keyboard_right
+            zmk_extra_modules: ""
+
+    steps:
+      - name: Checkout config repo
+        uses: actions/checkout@v4
+
+      - name: Cache west modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.west
+            zephyr
+            zmk
+            modules
+            bootloader
+          key: ${{ runner.os }}-west-${{ hashFiles('config/west.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-west-
+
+      - name: Initialise west workspace
+        run: |
+          west init -l config
+          west update
+          west zephyr-export
+
+      - name: Build ${{ matrix.artifact_name }}
+        run: |
+          west build -s zmk/app -b ${{ matrix.board }} \
+            -- \
+            -DSHIELD=${{ matrix.shield }} \
+            -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+
+      - name: Rename firmware
+        run: |
+          mkdir -p firmware
+          cp build/zephyr/zmk.uf2 firmware/${{ matrix.artifact_name }}.uf2
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: firmware/${{ matrix.artifact_name }}.uf2
+          retention-days: 30

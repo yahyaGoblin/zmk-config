@@ -1,0 +1,12 @@
+if SHIELD_MY_KEYBOARD_LEFT || SHIELD_MY_KEYBOARD_RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "My Keyboard"
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_BLE_ROLE_CENTRAL
+    default y if SHIELD_MY_KEYBOARD_LEFT
+
+endif

@@ -1,6 +1,5 @@
----
 include:
-  - board: xiao_ble
-    shield: corne_left
-  - board: xiao_ble
-    shield: corne_right
+  - board: seeeduino_xiao_ble
+    shield: my_keyboard_left
+  - board: seeeduino_xiao_ble
+    shield: my_keyboard_right

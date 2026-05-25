@@ -1,7 +1,5 @@
 include:
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: my_keyboard_left
-    cmake-args: -DCONFIG_ZMK_BOARD_COMPAT_CHECK=n
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: my_keyboard_right
-    cmake-args: -DCONFIG_ZMK_BOARD_COMPAT_CHECK=n
